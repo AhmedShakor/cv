@@ -330,8 +330,8 @@
       width: 100%;
       max-width: 288px;
       max-height: 22vh;
-      aspect-ratio: 4 / 3;
-      object-fit: cover;
+      aspect-ratio: auto;
+      object-fit: contain;
     }
     .course-copy { width: 100%; min-width: 0; text-align: center; }
     .course-title { margin: 0 0 16px; font-size: 24px; font-weight: 900; line-height: 1.33; }
@@ -407,6 +407,9 @@
     .channel-card { position: relative; overflow: hidden; min-width: 0; flex: 1 1 0%; padding: 16px; border: 1px solid var(--border); border-radius: 24px; background: var(--accent-wash), var(--secondary); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); -webkit-backdrop-filter: blur(24px) saturate(165%); backdrop-filter: blur(24px) saturate(165%); }
     .channel-heading { display: flex; align-items: center; gap: 12px; }
     .channel-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; transition: transform .2s; }
+    .channel-avatar-link { position: relative; display: block; flex: 0 0 auto; border-radius: 50%; }
+    .channel-badge { position: absolute; top: -3px; right: -3px; display: grid; width: 23px; height: 23px; place-items: center; border: 2px solid var(--secondary); border-radius: 50%; background: var(--accent-gradient); color: #fff; }
+    .channel-badge svg { width: 13px; height: 13px; }
     .channel-avatar:hover { transform: scale(1.05); }
     .channel-name { margin: 0; font-size: 20px; font-weight: 700; }
     .channel-topic { margin: 0; color: var(--muted-foreground); font-size: 14px; }
@@ -553,7 +556,10 @@
       .course-title { font-size: 36px; line-height: 1.1; }
       .projects-heading h2 { font-size: 48px; }
       .projects-heading .subtitle { font-size: 30px; line-height: 1.2; }
-      .project-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .project-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .project-card { grid-column: span 2; }
+      .project-card:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
+      .project-card:last-child:nth-child(3n + 2) { grid-column: 4 / span 2; }
       .channel-list { flex-direction: row; }
     }
     @media (max-width: 639px) {
@@ -646,7 +652,7 @@
         projHint: "Use the tags below to quickly filter the projects.",
         tags: ["All", "Data Analysis", "Web Dev", "Games", "Tools"],
         prog: "All About Programming", gamedev: "All About Game Development",
-        top: "Top Videos", other: "Other Social Media:", email: "Email"
+        top: "Projects", githubProjects: "GitHub projects", kaggleProjects: "Kaggle projects", other: "Other Social Media:", email: "Email"
       },
       ar: {
         hello: "مرحباً، اسمي",
@@ -665,7 +671,7 @@
         projHint: "استخدم الوسوم بالأسفل لتصفية المشاريع بسرعة.",
         tags: ["الكل", "تحليل البيانات", "تطوير الويب", "الألعاب", "برامج"],
         prog: "كل شيء عن البرمجة", gamedev: "كل شيء عن تطوير الألعاب",
-        top: "أفضل الفيديوهات", other: "حسابات التواصل الأخرى:", email: "البريد الإلكتروني"
+        top: "\u0627\u0644\u0645\u0634\u0627\u0631\u064a\u0639", githubProjects: "\u0645\u0634\u0627\u0631\u064a\u0639 GitHub", kaggleProjects: "\u0645\u0634\u0627\u0631\u064a\u0639 Kaggle", other: "حسابات التواصل الأخرى:", email: "البريد الإلكتروني"
       }
     };
 
@@ -682,6 +688,17 @@
     ];
 
     function projectArtwork(project) {
+      const projectImages = {
+        "Titanic": "assets/titanic.png",
+        "SLAM Test": "assets/slump%20test.png",
+        "Breast Cancer": "assets/cancer.png",
+        "Car Price Prediction": "assets/price%20car.png",
+        "Chess.com Assistant": "assets/chess.png",
+        "Space Game": "assets/space%20game.png",
+        "Flask Server Platform": "assets/flask.png",
+        "PyCode Academy": "assets/pycode.png"
+      };
+      if (projectImages[project.title]) return projectImages[project.title];
       const [start, end, symbol] = project.art;
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${start}"/><stop offset="1" stop-color="${end}"/></linearGradient></defs><rect width="160" height="160" rx="28" fill="url(#bg)"/><circle cx="132" cy="28" r="36" fill="#fff" opacity=".09"/><circle cx="20" cy="145" r="45" fill="#fff" opacity=".07"/><path d="M0 118 Q40 96 80 118 T160 112 V160 H0Z" fill="#081323" opacity=".15"/><text x="80" y="94" text-anchor="middle" font-size="68" font-family="Segoe UI Emoji, Apple Color Emoji, sans-serif">${symbol}</text></svg>`;
       return `data:image/svg+xml,${encodeURIComponent(svg)}`;
@@ -689,22 +706,14 @@
 
     const channels = [
       {
-        href: "https://www.youtube.com/@sop2", name: "Ahmed Shakor", topic: "prog",
-        avatar: embeddedMedia.channelProgramming,
-        videos: [
-          ["https://www.youtube.com/watch?v=TOgC7GYA5bE", embeddedMedia.thumbLearn],
-          ["https://www.youtube.com/watch?v=xEFuksWpDTs", embeddedMedia.thumbMoney],
-          ["https://www.youtube.com/watch?v=CMWKOE1uqSI", embeddedMedia.thumbWebsite]
-        ]
+        href: "https://github.com/AhmedShakor", name: "Ahmed_Shakor", topic: "githubProjects", icon: "github",
+        avatar: embeddedMedia.portrait,
+        projectIds: [4, 5, 6]
       },
       {
-        href: "https://www.youtube.com/@Sop_dev", name: "Ahmed Shakor", topic: "gamedev",
-        avatar: embeddedMedia.channelGames,
-        videos: [
-          ["https://www.youtube.com/watch?v=Tbg-kTYYk8M", embeddedMedia.thumbGodot],
-          ["https://www.youtube.com/watch?v=BrmozTWeJHo", embeddedMedia.thumbGamejam],
-          ["https://www.youtube.com/watch?v=jHnohwqYRsE", embeddedMedia.thumbScratch]
-        ]
+        href: "https://www.kaggle.com/ahmedgmdan", name: "Ahmed_Shakor", topic: "kaggleProjects", icon: "kaggle",
+        avatar: embeddedMedia.portrait,
+        projectIds: [0, 1, 2]
       }
     ];
 
@@ -713,7 +722,7 @@
       { href: "https://www.kaggle.com/ahmedgmdan", name: "Kaggle", icon: "kaggle" },
       { href: "https://t.me/+201016916082", name: "Telegram", icon: "telegram" },
       { href: "https://wa.me/201016916082", name: "WhatsApp", icon: "whatsapp" },
-      { href: "mailto:ahmed.gmdan.2010@gmail.com", name: "Gmail", icon: "gmail" }
+      { href: "https://mail.google.com/mail/?view=cm&to=ahmed.gmdan.2010%40gmail.com", name: "Gmail", icon: "gmail" }
     ];
 
     const icons = {
@@ -763,7 +772,7 @@
 
     function renderCourses(text) {
       return `<section class="tab-content course">
-        <div class="course-visual"><img class="course-image" src="${embeddedMedia.course}" alt="${text.learn1}" width="1024" height="768" decoding="async"></div>
+        <div class="course-visual"><img class="course-image" src="assets/pycode.png" alt="PyCode Academy course platform" width="1354" height="638" decoding="async"></div>
         <div class="course-copy">
           <h2 class="course-title">${text.learn1} <span>${text.learn2}</span></h2>
           <p class="course-description">${text.courseDescription}</p>
@@ -797,11 +806,11 @@
     function renderContact(text) {
       const channelCards = channels.map(channel => `<article class="channel-card">
         <div class="channel-heading">
-          <a href="${channel.href}" target="_blank" rel="noreferrer"><img class="channel-avatar" src="${channel.avatar}" alt="${channel.name}" decoding="async"></a>
+          <a class="channel-avatar-link" href="${channel.href}" target="_blank" rel="noreferrer" aria-label="${channel.name}"><img class="channel-avatar" src="${channel.avatar}" alt="${channel.name}" decoding="async"><span class="channel-badge">${icons[channel.icon]}</span></a>
           <div><h3 class="channel-name">${channel.name}</h3><p class="channel-topic">${text[channel.topic]}</p></div>
         </div>
         <p class="video-label">${text.top}</p>
-        <div class="video-grid">${channel.videos.map(video => `<a class="video-link" href="${video[0]}" target="_blank" rel="noreferrer"><img class="video-image" src="${video[1]}" alt="" loading="lazy" decoding="async"></a>`).join("")}</div>
+        <div class="video-grid">${channel.projectIds.map(projectId => { const project = projects[projectId]; return `<a class="video-link" href="${channel.href}" target="_blank" rel="noreferrer" aria-label="${project.title}"><img class="video-image" src="${projectArtwork(project)}" alt="${project.title}" loading="lazy" decoding="async"></a>`; }).join("")}</div>
       </article>`).join("");
       const socialLinks = socials.map(social => `<a class="social-link" href="${social.href}" target="_blank" rel="noreferrer" aria-label="${social.name}">${icons[social.icon]}</a>`).join("");
       return `<section class="tab-content">
