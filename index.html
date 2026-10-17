@@ -140,8 +140,9 @@
       body::before { animation: none; }
       ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .01ms !important; }
     }
-    button, a { font: inherit; color: inherit; cursor: pointer; }
+    button, a { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     button { border: 0; }
+    button, a { user-select: none; -webkit-user-select: none; }
     img { display: block; max-width: 100%; height: auto; }
 
     /* App frame and main card */
@@ -236,6 +237,7 @@
       font-size: 32px;
       font-weight: 800;
       line-height: 1.25;
+      white-space: nowrap;
     }
     .role {
       margin: 8px 0 0;
@@ -492,6 +494,7 @@
     .nav-button.active { color: var(--background); }
     .nav-button:active { transform: scale(.95); }
     .dock-controls { display: flex; gap: 4px; }
+    .mobile-topbar { display: none; }
     .control-button {
       display: grid;
       width: 28px;
@@ -554,8 +557,23 @@
       .channel-list { flex-direction: row; }
     }
     @media (max-width: 639px) {
-      .app { gap: 12px; padding-bottom: 24px; }
-      .top-spacer { height: 18px; }
+      .app { gap: 12px; padding: 8px 16px 24px; }
+      .top-spacer { height: 0; }
+      .mobile-topbar {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 4px;
+        padding: 4px;
+        border-radius: 999px;
+        background: var(--accent-wash), var(--secondary);
+        box-shadow: 0 16px 48px rgba(2, 5, 20, .38), inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(180,194,255,.1), inset 0 0 0 1px var(--border);
+        -webkit-backdrop-filter: blur(22px) saturate(160%);
+        backdrop-filter: blur(22px) saturate(160%);
+      }
+      .mobile-topbar .brand { width: auto; padding: 4px 8px; white-space: nowrap; }
+      .mobile-topbar .brand br { display: none; }
+      .dock > .brand, .dock > .dock-controls { display: none; }
       .main-card { padding: 20px 18px; }
       .tab-content { padding: 20px 18px; }
       .home { gap: 14px; }
@@ -577,6 +595,13 @@
 <body>
   <div class="app" id="app">
     <div class="top-spacer" aria-hidden="true"></div>
+    <div class="mobile-topbar" dir="ltr">
+      <div class="brand">Ahmed<br>Shakor</div>
+      <div class="dock-controls">
+        <button class="control-button" id="mobile-language-toggle" aria-label="Change language">Ar</button>
+        <button class="control-button" id="mobile-theme-toggle" aria-label="Toggle theme"></button>
+      </div>
+    </div>
     <main class="main-card" id="main"></main>
     <div class="dock" dir="ltr">
       <div class="brand">Ahmed<br>Shakor</div>
@@ -684,11 +709,11 @@
     ];
 
     const socials = [
-      { href: "https://github.com/Sopdevv", name: "GitHub", icon: "github" },
-      { href: "https://www.kaggle.com/sopdevv", name: "Kaggle", icon: "kaggle" },
-      { href: "https://t.me/Sopdevv", name: "Telegram", icon: "telegram" },
-      { href: "https://wa.me/?text=Contact%20Ahmed%20Shakor", name: "WhatsApp", icon: "whatsapp" },
-      { href: "mailto:sopforads@gmail.com", name: "Gmail", icon: "gmail" }
+      { href: "https://github.com/AhmedShakor", name: "GitHub", icon: "github" },
+      { href: "https://www.kaggle.com/ahmedgmdan", name: "Kaggle", icon: "kaggle" },
+      { href: "https://t.me/+201016916082", name: "Telegram", icon: "telegram" },
+      { href: "https://wa.me/201016916082", name: "WhatsApp", icon: "whatsapp" },
+      { href: "mailto:ahmed.gmdan.2010@gmail.com", name: "Gmail", icon: "gmail" }
     ];
 
     const icons = {
@@ -715,6 +740,8 @@
     const navigation = document.getElementById("navigation");
     const languageToggle = document.getElementById("language-toggle");
     const themeToggle = document.getElementById("theme-toggle");
+    const mobileLanguageToggle = document.getElementById("mobile-language-toggle");
+    const mobileThemeToggle = document.getElementById("mobile-theme-toggle");
     const arabicFontReady = document.fonts?.load
       ? document.fonts.load("16px Cairo", "أحمد شكور تعلم لغة بايثون").catch(() => {})
       : Promise.resolve();
@@ -822,6 +849,8 @@
       document.documentElement.classList.toggle("dark", darkMode);
       languageToggle.textContent = language === "en" ? "Ar" : "En";
       themeToggle.innerHTML = `<span class="theme-icon">${darkMode ? icons.sun : icons.moon}</span>`;
+      mobileLanguageToggle.textContent = languageToggle.textContent;
+      mobileThemeToggle.innerHTML = themeToggle.innerHTML;
       renderNavigation(text);
 
       let activeContent = [
@@ -911,6 +940,7 @@
         languageSwitching = false;
       }
     });
+    mobileLanguageToggle.addEventListener("click", () => languageToggle.click());
     themeToggle.addEventListener("click", () => {
       if (themeSwitching || languageSwitching) return;
       themeSwitching = true;
@@ -920,6 +950,7 @@
         localStorage.setItem("portfolio-theme", darkMode ? "dark" : "light");
         root.classList.toggle("dark", darkMode);
         themeToggle.innerHTML = `<span class="theme-icon">${darkMode ? icons.sun : icons.moon}</span>`;
+        mobileThemeToggle.innerHTML = themeToggle.innerHTML;
       };
       if (document.startViewTransition) {
         const transition = document.startViewTransition(applyTheme);
@@ -932,6 +963,7 @@
         window.setTimeout(() => { themeSwitching = false; }, 360);
       }
     });
+    mobileThemeToggle.addEventListener("click", () => themeToggle.click());
     render({ animate: false });
 
     document.addEventListener("pointermove", event => {
